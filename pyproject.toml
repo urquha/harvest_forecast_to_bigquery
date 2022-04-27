@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "forecast_to_bigquery"
+version = "0.1.0"
+description = ""
+authors = ["Andy Urquhart (andy.urquhart@tpximpact.com)"]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pytest = "^7.1.2"
+python-dotenv = "^0.20.0"
+pandas = "^1.4.2"
+requests-cache = "^0.9.4"
+click = "^8.1.2"
+
+pyforecast = { git = "https://github.com/urquha/py_forecast.git", branch = "master" }
+
+[tool.poetry.dev-dependencies]
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
