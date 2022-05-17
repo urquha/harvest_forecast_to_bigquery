@@ -1,3 +1,4 @@
 .env
 *.sqlite
 *.pyc
+nogit_keys.json
