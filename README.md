@@ -9,6 +9,6 @@ This repo uses [poetry](https://python-poetry.org/) to manage dependencies.
 ## Authentication
 Make a [personal access token](https://id.getharvest.com/developers) and have the following filled in in your .env file: 
 
-HARVEST_ACCESS_TOKEN=<HARVEST_ACCESS_TOKEN>
+FORECAST_ACCESS_TOKEN=<FORECAST_ACCESS_TOKEN>
 
-HARVEST_ACCOUNT_ID=<HARVEST_ACCOUNT_ID>
+FORECAST_ACCOUNT_ID=<FORECAST_ACCOUNT_ID>

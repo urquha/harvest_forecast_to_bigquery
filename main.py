@@ -26,8 +26,8 @@ def json_list(response: list):
 def forecast_to_bigquery(response):
     load_dotenv()
     api = forecast.Api(
-        account_id=os.environ.get("HARVEST_ACCOUNT_ID"), 
-        auth_token=os.environ.get("HARVEST_ACCESS_TOKEN")
+        account_id=os.environ.get("FORECAST_ACCOUNT_ID"), 
+        auth_token=os.environ.get("FORECAST_ACCESS_TOKEN")
     )
     tables = {
         'assignments_data': get_assignments_data(api),

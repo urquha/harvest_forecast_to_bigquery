@@ -48,8 +48,8 @@ def load_to_bigquery():
 
 if __name__ == "__main__":
     api = forecast.Api(
-        account_id=os.environ.get("HARVEST_ACCOUNT_ID"), 
-        auth_token=os.environ.get("HARVEST_ACCESS_TOKEN")
+        account_id=os.environ.get("FORECAST_ACCOUNT_ID"), 
+        auth_token=os.environ.get("FORECAST_ACCESS_TOKEN")
     )
     tables = {
         'assignments_data': get_assignments_data(),
