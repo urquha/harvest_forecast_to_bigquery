@@ -2,3 +2,5 @@
 *.sqlite
 *.pyc
 nogit_keys.json
+*.terraform*
+terraform.*
