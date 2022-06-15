@@ -10,20 +10,12 @@ Make a [personal access token](https://id.getharvest.com/developers)
 ## Deployment
 To deploy all the infra run the following command, filling in the environment variables with their respective values:
 
-`TF_VAR_FORECAST_ACCOUNT_ID=<forecast_account_id>\
-
-TF_VAR_FORECAST_ACCESS_TOKEN=<forecast_access_token\
-
-terraform apply`
+`TF_VAR_FORECAST_ACCOUNT_ID=<forecast_account_id> TF_VAR_FORECAST_ACCESS_TOKEN=<forecast_access_token terraform apply`
 
 
 To destroy all the infra run the following command, filling in the environment variables with their respective values:
 
-`TF_VAR_FORECAST_ACCOUNT_ID=<forecast_account_id>\
-
-TF_VAR_FORECAST_ACCESS_TOKEN=<forecast_access_token\
-
-terraform destroy`
+`TF_VAR_FORECAST_ACCOUNT_ID=<forecast_account_id> TF_VAR_FORECAST_ACCESS_TOKEN=<forecast_access_token terraform destroy`
 
 
 ## Testing
