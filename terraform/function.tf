@@ -45,7 +45,7 @@ resource "google_cloudfunctions_function" "function" {
     }
     
     environment_variables = {
-      "DATASET_NAME" = google_bigquery_dataset.forecast.dataset_id
+      "DATASET_ID" = google_bigquery_dataset.forecast.dataset_id
       "ASSIGNMENTS_TABLE_NAME" = google_bigquery_table.assignments.table_id
       "CLIENTS_TABLE_NAME" = google_bigquery_table.clients.table_id
       "PROJECTS_TABLE_NAME" = google_bigquery_table.projects.table_id
