@@ -22,17 +22,13 @@ def test_get_projects_data():
     'ASSIGNMENTS_TABLE_NAME': "assignments_table",
     'PROJECTS_TABLE_NAME': "projects_table",
     'CLIENTS_TABLE_NAME': "clients_table",
-    'DATASET_NAME': "dataset_name"
+    'DATASET_ID': "dataset_id"
         }
     )
-def test_load_config():
-    assert load_config() == {
-        'account_id': "account_id",
-        'auth_token': "auth_token",
-        'assignments_table': "assignments_table",
-        'projects_table': "projects_table",
-        'clients_table': "clients_table",
-        'dataset_id': "dataset_name"
-    }
+def test_load_config(mock_config):
+    assert load_config() == mock_config
 
-# def test_load_data_to_bigquery():
+def test_load_data_to_bigquery(bq_client_mock, mock_config, table_names):
+    mock_table_data = {}
+    response = load_data_to_bigquery(bq_client_mock, mock_config['dataset_id'], table_names[0], mock_table_data)
+    assert response == {table_names[0]: f"{len(mock_table_data)} rows"}
