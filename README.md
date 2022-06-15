@@ -1,14 +1,26 @@
 # Forecast to Bigquery
 A repo for TPXimpact to ingest forecast data in python and load into bigquery.
 
-This repo uses [poetry](https://python-poetry.org/) to manage dependencies.
-
-`poetry install`
-`poetry run python main.py`
+[Screenshot 2022-06-15 at 14 03 26](https://user-images.githubusercontent.com/35800749/173833593-7e4def50-07dc-424b-ada6-b623eb3dcf89.png)
 
 ## Authentication
-Make a [personal access token](https://id.getharvest.com/developers) and have the following filled in in your .env file: 
+Make a [personal access token](https://id.getharvest.com/developers)
 
-FORECAST_ACCESS_TOKEN=<FORECAST_ACCESS_TOKEN>
 
-FORECAST_ACCOUNT_ID=<FORECAST_ACCOUNT_ID>
+## Deployment
+To deploy all the infra run the following command, filling in the environment variables with their respective values:
+
+`TF_VAR_FORECAST_ACCOUNT_ID=<forecast_account_id>\
+TF_VAR_FORECAST_ACCESS_TOKEN=<forecast_access_token\
+terraform apply`
+
+
+To destroy all the infra run the following command, filling in the environment variables with their respective values:
+
+`TF_VAR_FORECAST_ACCOUNT_ID=<forecast_account_id>\
+TF_VAR_FORECAST_ACCESS_TOKEN=<forecast_access_token\
+terraform destroy`
+
+
+## Testing
+Currently the cloud function can be triggered from the testing tab in the gcp console.!
