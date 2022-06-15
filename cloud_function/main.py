@@ -1,20 +1,19 @@
 import forecast
-from dotenv import load_dotenv
 import os
 import json
 import io
 
 from google.cloud import bigquery
 
-def get_assignments_data(api: forecast.Api):
+def get_assignments_data(api: forecast.Api) -> list:
     assignments = json_list(api.get_assignments(start_date="2022-04-01T00:00:00.000Z", end_date="2022-05-01T00:00:00.000Z"))
     return [json.dumps(record) for record in assignments]
 
-def get_clients_data(api: forecast.Api):
+def get_clients_data(api: forecast.Api) -> list:
     clients = json_list(api.get_clients())
     return [json.dumps(record) for record in clients]
 
-def get_projects_data(api: forecast.Api):
+def get_projects_data(api: forecast.Api) -> list:
     projects = json_list(api.get_projects())
     return [json.dumps(record) for record in projects]
 
@@ -23,18 +22,16 @@ def json_list(response: list) -> list:
     return list(map(lambda item: item._json_data, response)) 
 
 def load_config() -> dict:
-    import pytest
-    pytest.set_trace()
     return {
         'account_id': os.environ.get("FORECAST_ACCOUNT_ID"),
         'auth_token': os.environ.get("FORECAST_ACCESS_TOKEN"),
         'assignments_table': os.environ.get('ASSIGNMENTS_TABLE_NAME'),
         'projects_table': os.environ.get('PROJECTS_TABLE_NAME'),
         'clients_table': os.environ.get('CLIENTS_TABLE_NAME'),
-        'dataset_id': os.environ.get('DATASET_NAME')
+        'dataset_id': os.environ.get('DATASET_ID')
     }
 
-def load_data_to_bigquery(client, dataset_id, table_name, table_data):
+def load_data_to_bigquery(client: bigquery.Client(), dataset_id: str, table_name: str, table_data: dict) -> dict:
     dataset_ref = client.dataset(dataset_id)
     table_ref = dataset_ref.table(table_name)
     job_config = bigquery.LoadJobConfig()
@@ -50,6 +47,7 @@ def load_data_to_bigquery(client, dataset_id, table_name, table_data):
         job_config=job_config,
         )
     job.done()
+    return {table_name: f"{len(table_data)} rows"}
 
 def forecast_to_bigquery(data: dict, context:dict=None):
     config = load_config()
