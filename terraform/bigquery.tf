@@ -47,6 +47,17 @@ resource "google_bigquery_table" "clients" {
   deletion_protection = false
 }
 
+resource "google_bigquery_table" "person" {
+  dataset_id = google_bigquery_dataset.forecast.dataset_id
+  table_id   = "person"
+
+  labels = {
+    env = var.env
+  }
+
+  deletion_protection = false
+}
+
 resource "google_bigquery_dataset" "harvest" {
   dataset_id                  = "Harvest"
   description                 = "Dataset for harvest tables to be used by datastudio"
