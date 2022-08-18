@@ -2,7 +2,6 @@ resource "google_bigquery_dataset" "forecast" {
   dataset_id                  = "Forecast"
   description                 = "Dataset for forecast tables to be used by datastudio"
   location                    = "EU"
-  default_table_expiration_ms = 3600000
 
   labels = {
     env = var.env
@@ -23,8 +22,6 @@ resource "google_bigquery_table" "assignments" {
   }
 
   deletion_protection = false
-
-
 }
 
 resource "google_bigquery_table" "projects" {
@@ -41,7 +38,28 @@ resource "google_bigquery_table" "projects" {
 
 resource "google_bigquery_table" "clients" {
   dataset_id = google_bigquery_dataset.forecast.dataset_id
-  table_id   = "client"
+  table_id   = "clients"
+
+  labels = {
+    env = var.env
+  }
+
+  deletion_protection = false
+}
+
+resource "google_bigquery_dataset" "harvest" {
+  dataset_id                  = "Harvest"
+  description                 = "Dataset for harvest tables to be used by datastudio"
+  location                    = "EU"
+
+  labels = {
+    env = var.env
+  }
+}
+
+resource "google_bigquery_table" "harvest" {
+  dataset_id = google_bigquery_dataset.harvest.dataset_id
+  table_id   = "timesheets"
 
   labels = {
     env = var.env
