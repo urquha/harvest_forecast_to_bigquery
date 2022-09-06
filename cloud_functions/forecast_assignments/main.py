@@ -55,7 +55,9 @@ def forecast_assignments_to_bigquery(data: dict, context:dict=None):
     client = bigquery.Client(location=config['location'])
     dataset_ref = client.dataset(config['dataset_id'])
     table_ref = dataset_ref.table(config['table_name'])
-    job_config = bigquery.LoadJobConfig()
+    job_config = bigquery.LoadJobConfig(
+        write_disposition="WRITE_TRUNCATE"
+    )
 
     job_config.autodetect = True
 

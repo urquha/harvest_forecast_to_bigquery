@@ -59,7 +59,9 @@ def forecast_other_to_bigquery(data: dict, context:dict=None):
     dataset_ref = client.dataset(config['dataset_id'])
     projects_table_ref = dataset_ref.table(config['projects_table_name'])
     person_table_ref = dataset_ref.table(config['person_table_name'])
-    job_config = bigquery.LoadJobConfig()
+    job_config = bigquery.LoadJobConfig(
+        write_disposition="WRITE_TRUNCATE"
+    )
 
     job_config.autodetect = True
 
