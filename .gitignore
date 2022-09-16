@@ -4,3 +4,4 @@
 nogit_keys.json
 *.terraform*
 terraform.*
+.csv

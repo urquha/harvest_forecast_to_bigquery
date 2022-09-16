@@ -3,7 +3,7 @@ variable "region" {
 }
 
 variable "project" {
-    default = "forecast-datastudio"
+    default = "tpx-cheetah"
 }
 
 variable "env" {

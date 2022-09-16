@@ -22,6 +22,22 @@ resource "google_storage_bucket_object" "forecast_assignments_to_bigquery" {
     # ]
 }
 
+resource "google_project_iam_binding" "job_user" {
+  project = var.project
+  role       = "roles/bigquery.jobUser"
+  members = [
+    "serviceAccount:${var.project}@appspot.gserviceaccount.com"
+  ]
+}
+
+resource "google_project_iam_binding" "data_editor" {
+  project = var.project
+  role       = "roles/bigquery.dataEditor"
+  members = [
+    "serviceAccount:${var.project}@appspot.gserviceaccount.com"
+  ]
+}
+
 # Create the Cloud function triggered by a `Finalize` event on the bucket
 resource "google_cloudfunctions_function" "forecast_assignments_to_bigquery" {
     name                  = "forecast-assignments-to-bigquery"
@@ -84,6 +100,7 @@ resource "google_storage_bucket_object" "forecast_other_to_bigquery" {
 resource "google_cloudfunctions_function" "forecast_other_to_bigquery" {
     name                  = "forecast-other-to-bigquery"
     runtime               = "python37"  # of course changeable
+
     # Get the source code of the cloud function as a Zip compression
     source_archive_bucket = google_storage_bucket.function_bucket.name
     source_archive_object = google_storage_bucket_object.forecast_other_to_bigquery.name
@@ -142,6 +159,8 @@ resource "google_storage_bucket_object" "harvest_to_bigquery" {
 resource "google_cloudfunctions_function" "harvest_to_bigquery" {
     name                  = "harvest-to-bigquery"
     runtime               = "python37"  # of course changeable
+    available_memory_mb   = 4096
+    timeout               = 540
 
     # Get the source code of the cloud function as a Zip compression
     source_archive_bucket = google_storage_bucket.function_bucket.name
