@@ -52,7 +52,7 @@ def forecast_other_to_bigquery(data: dict, context:dict=None):
     )
 
     projects_data_df = pd.DataFrame(get_projects_data(api))
-    person_data_df = pd.DataFrame(get_person_data(api)).drop(['working_days'], axis=1)
+    person_data_df = pd.DataFrame(get_person_data(api)).drop(['working_days', 'roles'], axis=1)
 
     client = bigquery.Client(location=config['location'])
 
