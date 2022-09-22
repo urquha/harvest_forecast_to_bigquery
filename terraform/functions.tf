@@ -1,27 +1,3 @@
-# Generates an archive of the source code compressed as a .zip file.
-data "archive_file" "forecast_assignments_to_bigquery" {
-    type        = "zip"
-    source_dir  = "../cloud_functions/forecast_assignments"
-    output_path = "/tmp/forecast_assignments_to_bigquery.zip"
-}
-
-# Add source code zip to the Cloud Function's bucket
-resource "google_storage_bucket_object" "forecast_assignments_to_bigquery" {
-    source       = data.archive_file.forecast_assignments_to_bigquery.output_path
-    content_type = "application/zip"
-
-    # Append to the MD5 checksum of the files's content
-    # to force the zip to be updated as soon as a change occurs
-    name         = "cloud_function-${data.archive_file.forecast_assignments_to_bigquery.output_md5}.zip"
-    bucket       = google_storage_bucket.function_bucket.name
-
-    # # Dependencies are automatically inferred so these lines can be deleted
-    # depends_on   = [
-    #     google_storage_bucket.function_bucket,  # declared in `storage.tf`
-    #     data.forecast_assignments_to_bigquery.source
-    # ]
-}
-
 resource "google_project_iam_binding" "job_user" {
   project = var.project
   role       = "roles/bigquery.jobUser"
@@ -38,17 +14,41 @@ resource "google_project_iam_binding" "data_editor" {
   ]
 }
 
-# Create the Cloud function triggered by a `Finalize` event on the bucket
-resource "google_cloudfunctions_function" "forecast_assignments_to_bigquery" {
-    name                  = "forecast-assignments-to-bigquery"
+# Generates an archive of the source code compressed as a .zip file.
+data "archive_file" "forecast_assignments_to_bigquery_past" {
+    type        = "zip"
+    source_dir  = "../cloud_functions/forecast_assignments_past"
+    output_path = "/tmp/forecast_assignments_to_bigquery_past.zip"
+}
+
+# Add source code zip to the Cloud Function's bucket
+resource "google_storage_bucket_object" "forecast_assignments_to_bigquery_past" {
+    source       = data.archive_file.forecast_assignments_to_bigquery_past.output_path
+    content_type = "application/zip"
+
+    # Append to the MD5 checksum of the files's content
+    # to force the zip to be updated as soon as a change occurs
+    name         = "cloud_function-${data.archive_file.forecast_assignments_to_bigquery_past.output_md5}.zip"
+    bucket       = google_storage_bucket.function_bucket.name
+
+    # # Dependencies are automatically inferred so these lines can be deleted
+    # depends_on   = [
+    #     google_storage_bucket.function_bucket,  # declared in `storage.tf`
+    #     data.forecast_assignments_to_bigquery.source
+    # ]
+}
+
+
+resource "google_cloudfunctions_function" "forecast_assignments_to_bigquery_past" {
+    name                  = "forecast-assignments-to-bigquery-past"
     runtime               = "python37"  # of course changeable
     available_memory_mb   = 512
     # Get the source code of the cloud function as a Zip compression
     source_archive_bucket = google_storage_bucket.function_bucket.name
-    source_archive_object = google_storage_bucket_object.forecast_assignments_to_bigquery.name
+    source_archive_object = google_storage_bucket_object.forecast_assignments_to_bigquery_past.name
 
     # Must match the function name in the cloud function `main.py` source code
-    entry_point           = "forecast_assignments_to_bigquery"
+    entry_point           = "forecast_assignments_to_bigquery_past"
     
     # event_trigger {
     #     event_type = "google.storage.object.finalize"
@@ -57,7 +57,65 @@ resource "google_cloudfunctions_function" "forecast_assignments_to_bigquery" {
 
     event_trigger {
         event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-        resource   = google_pubsub_topic.cloud_function_trigger.id
+        resource   = google_pubsub_topic.cloud_function_trigger_daily.id
+    }
+    
+    environment_variables = {
+      "DATASET_ID" = google_bigquery_dataset.forecast.dataset_id
+      "TABLE_NAME" = google_bigquery_table.assignments.table_id
+    }
+
+    secret_environment_variables {
+        key = "FORECAST_ACCOUNT_ID"
+        secret = "FORECAST_ACCOUNT_ID"
+        version = "latest" 
+    }
+
+    secret_environment_variables {
+        key = "FORECAST_ACCESS_TOKEN"
+        secret = "FORECAST_ACCESS_TOKEN"
+        version = "latest" 
+    }
+}
+
+# Generates an archive of the source code compressed as a .zip file.
+data "archive_file" "forecast_assignments_to_bigquery_update" {
+    type        = "zip"
+    source_dir  = "../cloud_functions/forecast_assignments_update"
+    output_path = "/tmp/forecast_assignments_to_bigquery_update.zip"
+}
+
+# Add source code zip to the Cloud Function's bucket
+resource "google_storage_bucket_object" "forecast_assignments_to_bigquery_update" {
+    source       = data.archive_file.forecast_assignments_to_bigquery_update.output_path
+    content_type = "application/zip"
+
+    # Append to the MD5 checksum of the files's content
+    # to force the zip to be updated as soon as a change occurs
+    name         = "cloud_function-${data.archive_file.forecast_assignments_to_bigquery_update.output_md5}.zip"
+    bucket       = google_storage_bucket.function_bucket.name
+
+    # # Dependencies are automatically inferred so these lines can be deleted
+    # depends_on   = [
+    #     google_storage_bucket.function_bucket,  # declared in `storage.tf`
+    #     data.forecast_assignments_to_bigquery.source
+    # ]
+}
+
+resource "google_cloudfunctions_function" "forecast_assignments_to_bigquery_update" {
+    name                  = "forecast-assignments-to-bigquery-update"
+    runtime               = "python37"  # of course changeable
+
+    # Get the source code of the cloud function as a Zip compression
+    source_archive_bucket = google_storage_bucket.function_bucket.name
+    source_archive_object = google_storage_bucket_object.forecast_assignments_to_bigquery_update.name
+
+    # Must match the function name in the cloud function `main.py` source code
+    entry_point           = "forecast_assignments_to_bigquery_update"
+
+    event_trigger {
+        event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
+        resource   = google_pubsub_topic.cloud_function_trigger_five_min.id
     }
     
     environment_variables = {
@@ -96,7 +154,6 @@ resource "google_storage_bucket_object" "forecast_other_to_bigquery" {
     bucket       = google_storage_bucket.function_bucket.name
 }
 
-# Create the Cloud function triggered by a `Finalize` event on the bucket
 resource "google_cloudfunctions_function" "forecast_other_to_bigquery" {
     name                  = "forecast-other-to-bigquery"
     runtime               = "python37"  # of course changeable
@@ -115,7 +172,7 @@ resource "google_cloudfunctions_function" "forecast_other_to_bigquery" {
 
     event_trigger {
         event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-        resource   = google_pubsub_topic.cloud_function_trigger.id
+        resource   = google_pubsub_topic.cloud_function_trigger_daily.id
     }
     
     environment_variables = {
@@ -138,43 +195,96 @@ resource "google_cloudfunctions_function" "forecast_other_to_bigquery" {
 }
 
 # Generates an archive of the source code compressed as a .zip file.
-data "archive_file" "harvest_to_bigquery" {
+data "archive_file" "harvest_to_bigquery_all" {
     type        = "zip"
-    source_dir  = "../cloud_functions/harvest"
-    output_path = "/tmp/harvest_to_bigquery.zip"
+    source_dir  = "../cloud_functions/harvest_all"
+    output_path = "/tmp/harvest_to_bigquery_all.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket
-resource "google_storage_bucket_object" "harvest_to_bigquery" {
-    source       = data.archive_file.harvest_to_bigquery.output_path
+resource "google_storage_bucket_object" "harvest_to_bigquery_all" {
+    source       = data.archive_file.harvest_to_bigquery_all.output_path
     content_type = "application/zip"
 
     # Append to the MD5 checksum of the files's content
     # to force the zip to be updated as soon as a change occurs
-    name         = "cloud_function-${data.archive_file.harvest_to_bigquery.output_md5}.zip"
+    name         = "cloud_function-${data.archive_file.harvest_to_bigquery_all.output_md5}.zip"
     bucket       = google_storage_bucket.function_bucket.name
 }
 
-# Create the Cloud function triggered by a `Finalize` event on the bucket
-resource "google_cloudfunctions_function" "harvest_to_bigquery" {
-    name                  = "harvest-to-bigquery"
+resource "google_cloudfunctions_function" "harvest_to_bigquery_all" {
+    name                  = "harvest-to-bigquery-all"
     runtime               = "python37"  # of course changeable
     available_memory_mb   = 4096
     timeout               = 540
 
     # Get the source code of the cloud function as a Zip compression
     source_archive_bucket = google_storage_bucket.function_bucket.name
-    source_archive_object = google_storage_bucket_object.harvest_to_bigquery.name
+    source_archive_object = google_storage_bucket_object.harvest_to_bigquery_all.name
 
     # Must match the function name in the cloud function `main.py` source code
-    entry_point           = "harvest_to_bigquery"
+    entry_point           = "harvest_to_bigquery_all"
     
-    trigger_http = true
+    event_trigger {
+        event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
+        resource   = google_pubsub_topic.cloud_function_trigger_daily.id
+    }
 
-    # event_trigger {
-    #     event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-    #     resource   = google_pubsub_topic.cloud_function_trigger.id
-    # }
+    environment_variables = {
+      "DATASET_ID" = google_bigquery_dataset.harvest.dataset_id
+      "TABLE_NAME" = google_bigquery_table.harvest.table_id
+      "PROJECTS_TABLE_NAME" = google_bigquery_table.projects.table_id
+      "TABLE_LOCATION" = google_bigquery_table.harvest.location
+    }
+
+    secret_environment_variables {
+        key = "HARVEST_ACCOUNT_ID"
+        secret = "HARVEST_ACCOUNT_ID"
+        version = "latest" 
+    }
+
+    secret_environment_variables {
+        key = "HARVEST_ACCESS_TOKEN"
+        secret = "HARVEST_ACCESS_TOKEN"
+        version = "latest" 
+    }
+}
+
+# Generates an archive of the source code compressed as a .zip file.
+data "archive_file" "harvest_to_bigquery_update" {
+    type        = "zip"
+    source_dir  = "../cloud_functions/harvest_update"
+    output_path = "/tmp/harvest_to_bigquery_update.zip"
+}
+
+# Add source code zip to the Cloud Function's bucket
+resource "google_storage_bucket_object" "harvest_to_bigquery_update" {
+    source       = data.archive_file.harvest_to_bigquery_update.output_path
+    content_type = "application/zip"
+
+    # Append to the MD5 checksum of the files's content
+    # to force the zip to be updated as soon as a change occurs
+    name         = "cloud_function-${data.archive_file.harvest_to_bigquery_update.output_md5}.zip"
+    bucket       = google_storage_bucket.function_bucket.name
+}
+
+resource "google_cloudfunctions_function" "harvest_to_bigquery_update" {
+    name                  = "harvest-to-bigquery-update"
+    runtime               = "python37"  # of course changeable
+    timeout               = 540
+    available_memory_mb   = 1024
+
+    # Get the source code of the cloud function as a Zip compression
+    source_archive_bucket = google_storage_bucket.function_bucket.name
+    source_archive_object = google_storage_bucket_object.harvest_to_bigquery_update.name
+
+    # Must match the function name in the cloud function `main.py` source code
+    entry_point           = "harvest_to_bigquery_update"
+    
+    event_trigger {
+        event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
+        resource   = google_pubsub_topic.cloud_function_trigger_five_min.id
+    }
     
     environment_variables = {
       "DATASET_ID" = google_bigquery_dataset.harvest.dataset_id
@@ -195,3 +305,4 @@ resource "google_cloudfunctions_function" "harvest_to_bigquery" {
         version = "latest" 
     }
 }
+

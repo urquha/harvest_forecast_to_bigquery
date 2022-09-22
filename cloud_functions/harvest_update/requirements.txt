@@ -1,0 +1,5 @@
+# Function dependencies:
+pandas
+google-cloud-bigquery >= 3.1.0
+asyncio
+httpx

@@ -10,10 +10,6 @@ import pandas as pd
 
 from google.cloud import bigquery
 
-def get_assignments_data(api: forecast.Api, start_date: str, end_date: str) -> list:
-    assignments = json_list(api.get_assignments(start_date, end_date))
-    return [record for record in assignments]
-
 def get_clients_data(api: forecast.Api) -> list:
     clients = json_list(api.get_clients())
     return [record for record in clients]

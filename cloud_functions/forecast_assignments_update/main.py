@@ -1,8 +1,7 @@
 import forecast
 import os
 import json
-from google.cloud.logging import DESCENDING
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 import pandas as pd
 import copy
 
@@ -11,14 +10,6 @@ from google.cloud import bigquery
 def get_assignments_data(api: forecast.Api, start_date: str, end_date: str) -> list:
     assignments = json_list(api.get_assignments(start_date, end_date))
     return [record for record in assignments]
-
-def get_clients_data(api: forecast.Api) -> list:
-    clients = json_list(api.get_clients())
-    return [json.dumps(record) for record in clients]
-
-def get_projects_data(api: forecast.Api) -> list:
-    projects = json_list(api.get_projects())
-    return [json.dumps(record) for record in projects]
 
 def json_list(response: list) -> list:
     # This function maps a response to a json list    
@@ -33,17 +24,15 @@ def load_config() -> dict:
         'location': os.environ.get('TABLE_LOCATION')
     }
 
-
-def forecast_assignments_to_bigquery(data: dict, context:dict=None):
+def forecast_assignments_to_bigquery_update(data: dict, context:dict=None):
     config = load_config()
 
     print(f"Dataset id - {config['dataset_id']}")
 
     # Dates have to be specified for assignments
-    start_timestamp = (datetime.now() - timedelta(days=90)).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] + "Z"
-    end_timestamp = (datetime.now() + timedelta(days=90)).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] + "Z"
+    start_timestamp = (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] + "Z"
+    end_timestamp = (datetime.now() + timedelta(days=173)).strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] + "Z"
     
-
     api = forecast.Api(
         account_id=config['account_id'], 
         auth_token=config['auth_token']
@@ -51,7 +40,7 @@ def forecast_assignments_to_bigquery(data: dict, context:dict=None):
 
     print(f"Getting assignments data from {start_timestamp} to {end_timestamp}")
     assignments_data_df = expand_rows(pd.DataFrame(get_assignments_data(api, start_timestamp, end_timestamp)).drop(['placeholder_id'], axis=1))
-    
+
     client = bigquery.Client(location=config['location'])
     dataset_ref = client.dataset(config['dataset_id'])
     table_ref = dataset_ref.table(config['table_name'])
@@ -67,6 +56,7 @@ def forecast_assignments_to_bigquery(data: dict, context:dict=None):
     job.result()
 
     print("Loaded {} rows into {}:{}.".format(job.output_rows, config['dataset_id'], config['table_name']))    
+
 
 def expand_rows(df):
     # When an assignment is entered, it can be put in for a single day or multiple. 
@@ -96,4 +86,4 @@ def expand_rows(df):
     return pd.DataFrame(single_assignment_rows)
 
 if __name__ == "__main__":
-    forecast_assignments_to_bigquery({}, {})
+    forecast_assignments_to_bigquery_update({})
