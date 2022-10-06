@@ -1,14 +1,10 @@
 import forecast
 import os
-import json
-import time    
-import google.cloud.logging
-from google.cloud.logging import DESCENDING
-import itertools
-from datetime import datetime, timedelta, timezone
 import pandas as pd
 
 from google.cloud import bigquery
+
+PRIMARY_ROLES = ['Engineering','Design Team','Engagement Team','Delivery Manager','Organisational Design Consultant','Client Services','Growth','Management']
 
 def get_clients_data(api: forecast.Api) -> list:
     clients = json_list(api.get_clients())
@@ -48,7 +44,12 @@ def forecast_other_to_bigquery(data: dict, context:dict=None):
     )
 
     projects_data_df = pd.DataFrame(get_projects_data(api))
-    person_data_df = pd.DataFrame(get_person_data(api)).drop(['working_days', 'roles'], axis=1)
+
+    person_data_df = pd.DataFrame(get_person_data(api))
+    # Goes through roles and assigns primary role where applicable
+    person_data_df['primary_role'] = person_data_df.apply(lambda row:[(i) for i in row['roles'] if i in PRIMARY_ROLES] , axis=1)
+    active_person_data_df = person_data_df[person_data_df['archived'] == False].drop(['working_days', 'roles'], axis=1)
+
 
     client = bigquery.Client(location=config['location'])
 
@@ -63,12 +64,11 @@ def forecast_other_to_bigquery(data: dict, context:dict=None):
 
     projects_job = client.load_table_from_dataframe(projects_data_df, projects_table_ref, job_config=job_config)
     projects_job.result()
-    person_job = client.load_table_from_dataframe(person_data_df, person_table_ref, job_config=job_config)
+    person_job = client.load_table_from_dataframe(active_person_data_df, person_table_ref, job_config=job_config)
     person_job.result()
 
     print("Loaded {} rows into {}:{}.".format(projects_job.output_rows, config['dataset_id'], config['projects_table_name']))    
     print("Loaded {} rows into {}:{}.".format(person_job.output_rows, config['dataset_id'], config['person_table_name']))    
-
 
 if __name__ == "__main__":
     forecast_other_to_bigquery({}, {})

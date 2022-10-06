@@ -25,3 +25,7 @@ variable "HARVEST_ACCESS_TOKEN" {
 variable "HARVEST_ACCOUNT_ID" {
 
 }
+
+variable "BOB_ACCESS_TOKEN" {
+    
+}

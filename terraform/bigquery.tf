@@ -78,3 +78,24 @@ resource "google_bigquery_table" "harvest" {
 
   deletion_protection = false
 }
+
+resource "google_bigquery_dataset" "bob" {
+  dataset_id                  = "Bob"
+  description                 = "Dataset for HiBob data to be used by datastudio"
+  location                    = "EU"
+
+  labels = {
+    env = var.env
+  }
+}
+
+resource "google_bigquery_table" "bob_live" {
+  dataset_id = google_bigquery_dataset.bob.dataset_id
+  table_id   = "holidays"
+
+  labels = {
+    env = var.env
+  }
+
+  deletion_protection = false
+}
