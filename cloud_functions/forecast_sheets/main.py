@@ -46,8 +46,9 @@ def main(data: dict, context: dict=None):
     utilisation_roles['primary_role'] = utilisation_roles.apply(lambda row: get_roles(row, person_data), axis=1)
 
     utilisation_roles['capacity_1_week_hours'] = utilisation_roles.apply(lambda row: get_capacity(row, person_data), axis=1)
-    
+    utilisation_roles = utilisation_roles[utilisation_roles['capacity_1_week_hours'] != "Name probably not in forecast"]
     utilisation_roles['capacity_4_week_hours'] = utilisation_roles['capacity_1_week_hours'] * 4
+    
     utilisation_roles['capacity_1_week_days'] = utilisation_roles['capacity_1_week_hours'] / 8
     utilisation_roles['capacity_4_week_days'] = utilisation_roles['capacity_4_week_hours'] / 8
     
