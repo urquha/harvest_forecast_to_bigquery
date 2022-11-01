@@ -50,7 +50,8 @@ def forecast_other_to_bigquery(data: dict, context:dict=None):
     person_data_df['primary_role'] = person_data_df.apply(lambda row:[(i) for i in row['roles'] if i in PRIMARY_ROLES] , axis=1)
     active_person_data_df = person_data_df[person_data_df['archived'] == False].drop(['working_days', 'roles'], axis=1)
 
-
+    import pytest
+    pytest.set_trace()
     client = bigquery.Client(location=config['location'])
 
     dataset_ref = client.dataset(config['dataset_id'])

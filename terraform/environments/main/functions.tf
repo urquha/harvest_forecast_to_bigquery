@@ -106,6 +106,7 @@ resource "google_cloudfunctions_function" "forecast_assignments_to_bigquery_upda
     name                  = "forecast-assignments-to-bigquery-update"
     runtime               = "python37"  # of course changeable
     available_memory_mb   = 1024
+    timeout               = 540
     # Get the source code of the cloud function as a Zip compression
     source_archive_bucket = google_storage_bucket.function_bucket.name
     source_archive_object = google_storage_bucket_object.forecast_assignments_to_bigquery_update.name
@@ -134,121 +135,127 @@ resource "google_cloudfunctions_function" "forecast_assignments_to_bigquery_upda
         secret = "FORECAST_ACCESS_TOKEN"
         version = "latest" 
     }
+
+    secret_environment_variables {
+        key = "BOB_ACCESS_TOKEN"
+        secret = "BOB_ACCESS_TOKEN"
+        version = "latest" 
+    }
 }
 
-# Generates an archive of the source code compressed as a .zip file.
-data "archive_file" "forecast_other_to_bigquery" {
-    type        = "zip"
-    source_dir  = "../cloud_functions/forecast_other"
-    output_path = "/tmp/forecast_other_to_bigquery.zip"
-}
+# # Generates an archive of the source code compressed as a .zip file.
+# data "archive_file" "forecast_other_to_bigquery" {
+#     type        = "zip"
+#     source_dir  = "../cloud_functions/forecast_other"
+#     output_path = "/tmp/forecast_other_to_bigquery.zip"
+# }
 
-# Add source code zip to the Cloud Function's bucket
-resource "google_storage_bucket_object" "forecast_other_to_bigquery" {
-    source       = data.archive_file.forecast_other_to_bigquery.output_path
-    content_type = "application/zip"
+# # Add source code zip to the Cloud Function's bucket
+# resource "google_storage_bucket_object" "forecast_other_to_bigquery" {
+#     source       = data.archive_file.forecast_other_to_bigquery.output_path
+#     content_type = "application/zip"
 
-    # Append to the MD5 checksum of the files's content
-    # to force the zip to be updated as soon as a change occurs
-    name         = "cloud_function-${data.archive_file.forecast_other_to_bigquery.output_md5}.zip"
-    bucket       = google_storage_bucket.function_bucket.name
-}
+#     # Append to the MD5 checksum of the files's content
+#     # to force the zip to be updated as soon as a change occurs
+#     name         = "cloud_function-${data.archive_file.forecast_other_to_bigquery.output_md5}.zip"
+#     bucket       = google_storage_bucket.function_bucket.name
+# }
 
-resource "google_cloudfunctions_function" "forecast_other_to_bigquery" {
-    name                  = "forecast-other-to-bigquery"
-    runtime               = "python37"  # of course changeable
+# resource "google_cloudfunctions_function" "forecast_other_to_bigquery" {
+#     name                  = "forecast-other-to-bigquery"
+#     runtime               = "python37"  # of course changeable
 
-    # Get the source code of the cloud function as a Zip compression
-    source_archive_bucket = google_storage_bucket.function_bucket.name
-    source_archive_object = google_storage_bucket_object.forecast_other_to_bigquery.name
+#     # Get the source code of the cloud function as a Zip compression
+#     source_archive_bucket = google_storage_bucket.function_bucket.name
+#     source_archive_object = google_storage_bucket_object.forecast_other_to_bigquery.name
 
-    # Must match the function name in the cloud function `main.py` source code
-    entry_point           = "forecast_other_to_bigquery"
+#     # Must match the function name in the cloud function `main.py` source code
+#     entry_point           = "forecast_other_to_bigquery"
     
-    # event_trigger {
-    #     event_type = "google.storage.object.finalize"
-    #     resource   = "${var.project}-input"
-    # }
+#     # event_trigger {
+#     #     event_type = "google.storage.object.finalize"
+#     #     resource   = "${var.project}-input"
+#     # }
 
-    event_trigger {
-        event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-        resource   = google_pubsub_topic.cloud_function_trigger_daily.id
-    }
+#     event_trigger {
+#         event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
+#         resource   = google_pubsub_topic.cloud_function_trigger_daily.id
+#     }
     
-    environment_variables = {
-      "DATASET_ID" = google_bigquery_dataset.forecast.dataset_id
-      "PROJECTS_TABLE_NAME" = google_bigquery_table.projects.table_id
-      "PERSON_TABLE_NAME" = google_bigquery_table.person.table_id
-    }
+#     environment_variables = {
+#       "DATASET_ID" = google_bigquery_dataset.forecast.dataset_id
+#       "PROJECTS_TABLE_NAME" = google_bigquery_table.projects.table_id
+#       "PERSON_TABLE_NAME" = google_bigquery_table.person.table_id
+#     }
 
-    secret_environment_variables {
-        key = "FORECAST_ACCOUNT_ID"
-        secret = "FORECAST_ACCOUNT_ID"
-        version = "latest" 
-    }
+#     secret_environment_variables {
+#         key = "FORECAST_ACCOUNT_ID"
+#         secret = "FORECAST_ACCOUNT_ID"
+#         version = "latest" 
+#     }
 
-    secret_environment_variables {
-        key = "FORECAST_ACCESS_TOKEN"
-        secret = "FORECAST_ACCESS_TOKEN"
-        version = "latest" 
-    }
-}
+#     secret_environment_variables {
+#         key = "FORECAST_ACCESS_TOKEN"
+#         secret = "FORECAST_ACCESS_TOKEN"
+#         version = "latest" 
+#     }
+# }
 
-# Generates an archive of the source code compressed as a .zip file.
-data "archive_file" "harvest_to_bigquery_all" {
-    type        = "zip"
-    source_dir  = "../cloud_functions/harvest_all"
-    output_path = "/tmp/harvest_to_bigquery_all.zip"
-}
+# # Generates an archive of the source code compressed as a .zip file.
+# data "archive_file" "harvest_to_bigquery_all" {
+#     type        = "zip"
+#     source_dir  = "../cloud_functions/harvest_all"
+#     output_path = "/tmp/harvest_to_bigquery_all.zip"
+# }
 
-# Add source code zip to the Cloud Function's bucket
-resource "google_storage_bucket_object" "harvest_to_bigquery_all" {
-    source       = data.archive_file.harvest_to_bigquery_all.output_path
-    content_type = "application/zip"
+# # Add source code zip to the Cloud Function's bucket
+# resource "google_storage_bucket_object" "harvest_to_bigquery_all" {
+#     source       = data.archive_file.harvest_to_bigquery_all.output_path
+#     content_type = "application/zip"
 
-    # Append to the MD5 checksum of the files's content
-    # to force the zip to be updated as soon as a change occurs
-    name         = "cloud_function-${data.archive_file.harvest_to_bigquery_all.output_md5}.zip"
-    bucket       = google_storage_bucket.function_bucket.name
-}
+#     # Append to the MD5 checksum of the files's content
+#     # to force the zip to be updated as soon as a change occurs
+#     name         = "cloud_function-${data.archive_file.harvest_to_bigquery_all.output_md5}.zip"
+#     bucket       = google_storage_bucket.function_bucket.name
+# }
 
-resource "google_cloudfunctions_function" "harvest_to_bigquery_all" {
-    name                  = "harvest-to-bigquery-all"
-    runtime               = "python37"  # of course changeable
-    available_memory_mb   = 4096
-    timeout               = 540
+# resource "google_cloudfunctions_function" "harvest_to_bigquery_all" {
+#     name                  = "harvest-to-bigquery-all"
+#     runtime               = "python37"  # of course changeable
+#     available_memory_mb   = 4096
+#     timeout               = 540
 
-    # Get the source code of the cloud function as a Zip compression
-    source_archive_bucket = google_storage_bucket.function_bucket.name
-    source_archive_object = google_storage_bucket_object.harvest_to_bigquery_all.name
+#     # Get the source code of the cloud function as a Zip compression
+#     source_archive_bucket = google_storage_bucket.function_bucket.name
+#     source_archive_object = google_storage_bucket_object.harvest_to_bigquery_all.name
 
-    # Must match the function name in the cloud function `main.py` source code
-    entry_point           = "harvest_to_bigquery_all"
+#     # Must match the function name in the cloud function `main.py` source code
+#     entry_point           = "harvest_to_bigquery_all"
     
-    event_trigger {
-        event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
-        resource   = google_pubsub_topic.cloud_function_trigger_daily.id
-    }
+#     event_trigger {
+#         event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
+#         resource   = google_pubsub_topic.cloud_function_trigger_daily.id
+#     }
 
-    environment_variables = {
-      "DATASET_ID" = google_bigquery_dataset.harvest.dataset_id
-      "TABLE_NAME" = google_bigquery_table.harvest.table_id
-      "PROJECTS_TABLE_NAME" = google_bigquery_table.projects.table_id
-      "TABLE_LOCATION" = google_bigquery_table.harvest.location
-    }
+#     environment_variables = {
+#       "DATASET_ID" = google_bigquery_dataset.harvest.dataset_id
+#       "TABLE_NAME" = google_bigquery_table.harvest.table_id
+#       "PROJECTS_TABLE_NAME" = google_bigquery_table.projects.table_id
+#       "TABLE_LOCATION" = google_bigquery_table.harvest.location
+#     }
 
-    secret_environment_variables {
-        key = "HARVEST_ACCOUNT_ID"
-        secret = "HARVEST_ACCOUNT_ID"
-        version = "latest" 
-    }
+#     secret_environment_variables {
+#         key = "HARVEST_ACCOUNT_ID"
+#         secret = "HARVEST_ACCOUNT_ID"
+#         version = "latest" 
+#     }
 
-    secret_environment_variables {
-        key = "HARVEST_ACCESS_TOKEN"
-        secret = "HARVEST_ACCESS_TOKEN"
-        version = "latest" 
-    }
-}
+#     secret_environment_variables {
+#         key = "HARVEST_ACCESS_TOKEN"
+#         secret = "HARVEST_ACCESS_TOKEN"
+#         version = "latest" 
+#     }
+# }
 
 # Generates an archive of the source code compressed as a .zip file.
 data "archive_file" "harvest_to_bigquery_update" {
@@ -306,36 +313,85 @@ resource "google_cloudfunctions_function" "harvest_to_bigquery_update" {
     }
 }
 
+# # Generates an archive of the source code compressed as a .zip file.
+# data "archive_file" "bob_to_bigquery_live" {
+#     type        = "zip"
+#     source_dir  = "../cloud_functions/bob_live"
+#     output_path = "/tmp/bob_live.zip"
+# }
+
+# # Add source code zip to the Cloud Function's bucket
+# resource "google_storage_bucket_object" "bob_to_bigquery_live" {
+#     source       = data.archive_file.bob_to_bigquery_live.output_path
+#     content_type = "application/zip"
+
+#     # Append to the MD5 checksum of the files's content
+#     # to force the zip to be updated as soon as a change occurs
+#     name         = "cloud_function-${data.archive_file.bob_to_bigquery_live.output_md5}.zip"
+#     bucket       = google_storage_bucket.function_bucket.name
+# }
+
+# resource "google_cloudfunctions_function" "bob_to_bigquery_live" {
+#     name                  = "bob-to-bigquery-live"
+#     runtime               = "python37"  # of course changeable
+#     timeout               = 540
+#     available_memory_mb   = 1024
+
+#     # Get the source code of the cloud function as a Zip compression
+#     source_archive_bucket = google_storage_bucket.function_bucket.name
+#     source_archive_object = google_storage_bucket_object.bob_to_bigquery_live.name
+
+#     # Must match the function name in the cloud function `main.py` source code
+#     entry_point           = "bob_to_bigquery"
+    
+#     event_trigger {
+#         event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
+#         resource   = google_pubsub_topic.cloud_function_trigger_five_min.id
+#     }
+    
+#     environment_variables = {
+#       "DATASET_ID" = google_bigquery_dataset.bob.dataset_id
+#       "TABLE_NAME" = google_bigquery_table.bob_live.table_id
+#       "TABLE_LOCATION" = google_bigquery_table.bob_live.location
+#     }
+
+#     secret_environment_variables {
+#         key = "BOB_ACCESS_TOKEN"
+#         secret = "BOB_ACCESS_TOKEN"
+#         version = "latest" 
+#     }
+# }
+
 # Generates an archive of the source code compressed as a .zip file.
-data "archive_file" "bob_to_bigquery_live" {
+data "archive_file" "forecast_sheets" {
     type        = "zip"
-    source_dir  = "../cloud_functions/bob_live"
-    output_path = "/tmp/bob_live.zip"
+    source_dir  = "../cloud_functions/forecast_sheets"
+    output_path = "/tmp/forecast_sheets.zip"
 }
 
 # Add source code zip to the Cloud Function's bucket
-resource "google_storage_bucket_object" "bob_to_bigquery_live" {
-    source       = data.archive_file.bob_to_bigquery_live.output_path
+resource "google_storage_bucket_object" "forecast_sheets" {
+    source       = data.archive_file.forecast_sheets.output_path
     content_type = "application/zip"
 
     # Append to the MD5 checksum of the files's content
     # to force the zip to be updated as soon as a change occurs
-    name         = "cloud_function-${data.archive_file.bob_to_bigquery_live.output_md5}.zip"
+    name         = "cloud_function-${data.archive_file.forecast_sheets.output_md5}.zip"
     bucket       = google_storage_bucket.function_bucket.name
 }
 
-resource "google_cloudfunctions_function" "bob_to_bigquery_live" {
-    name                  = "bob-to-bigquery-live"
+resource "google_cloudfunctions_function" "forecast_sheets" {
+    name                  = "utilisation-names-teams-capacity"
     runtime               = "python37"  # of course changeable
     timeout               = 540
     available_memory_mb   = 1024
 
     # Get the source code of the cloud function as a Zip compression
     source_archive_bucket = google_storage_bucket.function_bucket.name
-    source_archive_object = google_storage_bucket_object.bob_to_bigquery_live.name
+    source_archive_object = google_storage_bucket_object.forecast_sheets.name
 
     # Must match the function name in the cloud function `main.py` source code
-    entry_point           = "bob_to_bigquery"
+    entry_point           = "main"
     
     event_trigger {
         event_type = "providers/cloud.pubsub/eventTypes/topic.publish"
@@ -343,15 +399,22 @@ resource "google_cloudfunctions_function" "bob_to_bigquery_live" {
     }
     
     environment_variables = {
-      "DATASET_ID" = google_bigquery_dataset.bob.dataset_id
-      "TABLE_NAME" = google_bigquery_table.bob_live.table_id
-      "TABLE_LOCATION" = google_bigquery_table.bob_live.location
+      "DATASET_ID" = google_bigquery_dataset.forecast.dataset_id
+      "TABLE_NAME" = google_bigquery_table.person.table_id
+      "TABLE_LOCATION" = google_bigquery_table.person.location
     }
 
     secret_environment_variables {
-        key = "BOB_ACCESS_TOKEN"
-        secret = "BOB_ACCESS_TOKEN"
+        key = "FORECAST_ACCOUNT_ID"
+        secret = "FORECAST_ACCOUNT_ID"
         version = "latest" 
     }
+
+    secret_environment_variables {
+        key = "FORECAST_ACCESS_TOKEN"
+        secret = "FORECAST_ACCESS_TOKEN"
+        version = "latest" 
+    }
+
 }
 

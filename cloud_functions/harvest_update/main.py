@@ -25,7 +25,7 @@ def harvest_to_bigquery_update(data: dict, context:dict=None):
     config = load_config()
     increment = 20
     start_timestamp = (datetime.now() - timedelta(days=21)).strftime('%Y-%m-%d')
-    end_timestamp = (datetime.now() + timedelta(days=14)).strftime('%Y-%m-%d')
+    end_timestamp = (datetime.now() + timedelta(days=28)).strftime('%Y-%m-%d')
 
     total_no_pages = json.loads(httpx.get(url=f"https://api.harvestapp.com/v2/time_entries?page=1&from={start_timestamp}&to={end_timestamp}&per_page=2000&ref=next", headers=config['headers'])._content)['total_pages']
 
@@ -41,7 +41,7 @@ def harvest_to_bigquery_update(data: dict, context:dict=None):
         
         times += [item for page in responses for item in page]
         if page_no < total_no_pages:
-            time.sleep(2)
+            time.sleep(4)
         page_no += increment
     
     df_times = pd.DataFrame(times).drop(COLUMNS_TO_DROP, axis=1)

@@ -1,7 +1,7 @@
 import forecast
 import os
 import mock
-from main import json_list, load_config, forecast_assignments_to_bigquery_update, expand_rows, get_dates, make_row, get_assignments
+from main import json_list, load_config, forecast_assignments_to_bigquery_update, expand_rows, get_dates, make_row, get_assignments, check_billable, get_billable_codes
 import pandas as pd
 from datetime import datetime
 from unittest.mock import patch
@@ -30,11 +30,13 @@ def test_json_list():
 def test_load_config(mock_config):
     assert load_config() == mock_config
 
+@patch('main.get_projects_data')
 @patch('main.write_to_bigquery')
 @patch('main.get_assignments_data')
-def test_forecast_assignments_to_bigquery_update(mock_get_assignments_data, mock_write_to_bigquery, mock_assignments_response):
+def test_forecast_assignments_to_bigquery_update(mock_get_assignments_data, mock_write_to_bigquery, mock_get_projects_data, mock_assignments_response, mock_projects_data):
     mock_get_assignments_data.return_value = mock_assignments_response
     mock_write_to_bigquery.return_value = {}
+    mock_get_projects_data.return_value = mock_projects_data
     response = forecast_assignments_to_bigquery_update({})
     assert response == "Finished"
 
@@ -63,3 +65,14 @@ def test_make_row():
     date = datetime.strptime('2022-5-06', '%Y-%m-%d')
     response = make_row(row, date)
     assert response.values.tolist() == ["2022-05-06", '2022-05-06']
+
+def test_check_billable():
+    row = pd.Series({"project_id": 100})
+    response = check_billable(row, [100])
+    assert response
+
+@patch('main.get_projects_data')
+def test_get_billable_codes(mock_get_projects_data, mock_projects_data):
+    mock_get_projects_data.return_value = mock_projects_data
+    resp = get_billable_codes(forecast.Api)
+    assert resp == [1]

@@ -33,3 +33,10 @@ def mock_expand_rows_response():
         [3, '2022-08-18', '2022-08-18', 14400, None, '2020-12-02T12:38:58.914Z', 3, 3, 3, None, 4, False], 
         [3, '2022-08-19', '2022-08-19', 14400, None, '2020-12-02T12:38:58.914Z', 3, 3, 3, None, 4, False]
     ]
+
+@pytest.fixture
+def mock_projects_data():
+    return [
+        {'id': 1, "color": 'orange'},
+        {'id': 2, 'color': 'blue'}
+    ]
