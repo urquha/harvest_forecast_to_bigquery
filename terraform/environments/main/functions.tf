@@ -1,18 +1,18 @@
-# resource "google_project_iam_binding" "job_user" {
-#   project = var.project
-#   role       = "roles/bigquery.jobUser"
-#   members = [
-#     "serviceAccount:${var.project}@appspot.gserviceaccount.com"
-#   ]
-# }
+resource "google_project_iam_binding" "job_user" {
+  project = var.project
+  role       = "roles/bigquery.jobUser"
+  members = [
+    "serviceAccount:${var.project}@appspot.gserviceaccount.com"
+  ]
+}
 
-# resource "google_project_iam_binding" "data_editor" {
-#   project = var.project
-#   role       = "roles/bigquery.dataEditor"
-#   members = [
-#     "serviceAccount:${var.project}@appspot.gserviceaccount.com"
-#   ]
-# }
+resource "google_project_iam_binding" "data_editor" {
+  project = var.project
+  role       = "roles/bigquery.dataEditor"
+  members = [
+    "serviceAccount:${var.project}@appspot.gserviceaccount.com"
+  ]
+}
 
 # Generates an archive of the source code compressed as a .zip file.
 data "archive_file" "forecast_assignments_to_bigquery_update" {
