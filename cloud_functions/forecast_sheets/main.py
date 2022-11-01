@@ -42,7 +42,8 @@ def main(data: dict, context: dict=None):
     person_data = pd.DataFrame(get_person_data(api))
     person_data['Name'] = person_data['first_name'] + " " + person_data['last_name']
     person_data['primary_role'] = person_data.apply(lambda row:[(i) for i in row['roles'] if i in primary_roles] , axis=1)
-
+    person_data = person_data[person_data['archived']==False]
+    
     utilisation_roles['primary_role'] = utilisation_roles.apply(lambda row: get_roles(row, person_data), axis=1)
 
     utilisation_roles['capacity_1_week_hours'] = utilisation_roles.apply(lambda row: get_capacity(row, person_data), axis=1)
