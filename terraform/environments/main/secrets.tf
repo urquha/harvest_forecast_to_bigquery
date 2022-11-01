@@ -10,7 +10,7 @@ data "google_secret_manager_secret" "harvest_access_token" {
 
 data "google_secret_manager_secret" "bob_access_token" {
   secret_id = "BOB_ACCESS_TOKEN"
-  project = 1038428172523
+  project = var.project
 }
 
 data "google_secret_manager_secret" "forecast_account_id" {
