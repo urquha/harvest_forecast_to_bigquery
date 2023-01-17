@@ -115,7 +115,6 @@ def change_holidays_columns(df):
             "startPortion",
             "employeeId",
             "endPortion",
-            "entry_type",
             "status",
         ],
         axis=1,
