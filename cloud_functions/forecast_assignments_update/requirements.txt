@@ -6,3 +6,4 @@ git+https://github.com/urquha/py_forecast@master
 google.cloud.logging
 pandas
 httpx
+pyarrow
