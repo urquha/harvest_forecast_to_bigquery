@@ -63,6 +63,7 @@ def check_billable(row, billable_projects):
 
 
 def get_billable_codes(projects_df: pd.DataFrame) -> list:
+
     billable_projects = projects_df[projects_df["color"].isin(BILLABLE_PROJECT_COLOURS)]
     return billable_projects["id"].tolist()
 
@@ -76,7 +77,12 @@ def forecast_assignments_to_bigquery_update(data: dict, context: dict = None):
     httpx_client = httpx.Client()
     bq_client = bigquery.Client(location=config["location"])
 
-    df = get_assignments(api)
+    df = pd.concat(
+        [
+            get_assignments(api, -56, 100),
+            get_assignments(api, 101, 200),
+        ]
+    )
     people_df = pd.DataFrame(get_person_data(api))
     people_df["full_name"] = people_df["first_name"] + " " + people_df["last_name"]
     projects_df = pd.DataFrame(get_projects_data(api))
@@ -235,12 +241,12 @@ def change_assignments_columns(
     )
 
 
-def get_assignments(api: forecast.Api):
+def get_assignments(api: forecast.Api, start: int, end: int) -> pd.DataFrame:
     # Dates have to be specified for assignments
-    start_timestamp = (datetime.now() - timedelta(days=56)).strftime(
+    start_timestamp = (datetime.now() + timedelta(days=start)).strftime(
         "%Y-%m-%d %H:%M:%S.%f"
     )[:-3] + "Z"
-    end_timestamp = (datetime.now() + timedelta(days=100)).strftime(
+    end_timestamp = (datetime.now() + timedelta(days=end)).strftime(
         "%Y-%m-%d %H:%M:%S.%f"
     )[:-3] + "Z"
 
