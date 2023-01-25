@@ -51,7 +51,7 @@ def load_config() -> dict:
 
 
 def find_hours(row):
-    if row["startPortion"] == "all_day" and row["endPortion"] == "all_day":
+    if row["endDatePortion"] == "all_day" and row["endDatePortion"] == "all_day":
         return 8
     return 4
 
