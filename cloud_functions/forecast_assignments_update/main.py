@@ -141,7 +141,9 @@ def get_holidays(config: dict, client: httpx.Client):
     url = f"https://api.hibob.com/v1/timeoff/whosout?from={start_timestamp}&to={end_timestamp}&includeHourly=false&includePrivate=false"
     df = expand_holidays_rows(
         pd.DataFrame(
-            json.loads(client.get(url, headers=config["headers"]).text)["outs"]
+            json.loads(client.get(url, headers=config["headers"], timeout=None).text)[
+                "outs"
+            ]
         )
     )
 
